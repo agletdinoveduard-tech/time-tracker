@@ -5,46 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Учёт времени сотрудников</title>
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: system-ui, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 16px; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
         .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; margin: 0 0 8px; }
-        h3 { font-size: 18px; margin: 0 0 12px; }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        h1 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
+        h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
         label { font-weight: 500; font-size: 14px; display: block; margin-bottom: 6px; }
-        select, input, button { width: 100%; padding: 14px 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 14px; margin-bottom: 16px; font-family: inherit; }
-        button { background: #007aff; color: white; border: none; font-weight: 600; cursor: pointer; }
+        select, input, button {
+            width: 100%;
+            padding: 14px 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            font-family: inherit;
+        }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
         button:active { background: #005fc1; transform: scale(0.98); }
         .btn-delete { background: #ff3b30; }
         .btn-edit { background: #ff9500; }
         .calc-button { background: #34c759; }
         .sync-button { background: #007aff; }
-        .result-block { background: #eef2ff; border-radius: 20px; padding: 16px; text-align: center; margin-top: 16px; }
+        .export-button { background: #34c759; }
+        .result-block {
+            background: #eef2ff;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 16px;
+        }
         .result-value { font-size: 28px; font-weight: 700; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f8f8; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f8f8; font-weight: 600; }
+        .add-form { background: #fff8e7; border: 1px solid #ffe5b4; }
+        .action-buttons { display: flex; gap: 8px; }
+        .action-buttons button { padding: 6px 12px; font-size: 12px; margin-bottom: 0; width: auto; }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+        }
+        .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
+        .modal-buttons button { margin-bottom: 0; }
         .filter-row { display: flex; gap: 8px; margin-bottom: 16px; }
         .filter-row select, .filter-row input, .filter-row button { flex: 1; margin-bottom: 0; }
-        .list-filters { background: #f8f8f8; border-radius: 16px; padding: 12px; margin-bottom: 16px; }
+        .list-filters {
+            background: #f8f8f8;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
         .list-filters h4 { margin: 0 0 10px; font-size: 14px; color: #666; }
         .autocomplete-container { position: relative; width: 100%; }
-        .autocomplete-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 14px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; }
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
         .autocomplete-suggestions div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; }
         .autocomplete-suggestions div:hover { background: #f0f0f0; }
-        .expand-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
+        .expand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
         .expand-header h3 { margin: 0; }
         .expand-icon { font-size: 20px; }
         .warning { color: #ff3b30; font-size: 12px; margin-top: -12px; margin-bottom: 12px; display: none; }
         .sort-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
         .sort-select { width: auto; padding: 8px 12px; font-size: 14px; margin-bottom: 0; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; border-radius: 24px; padding: 20px; width: 90%; max-width: 350px; }
-        .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
-        .action-buttons { display: flex; gap: 8px; }
-        .action-buttons button { padding: 6px 12px; font-size: 12px; margin-bottom: 0; width: auto; }
-        .sync-status { font-size: 12px; margin-top: 8px; text-align: center; }
+        .sync-status { font-size: 12px; color: #666; margin-top: 8px; text-align: center; }
         .syncing { opacity: 0.5; pointer-events: none; }
+        .import-file { display: none; }
     </style>
 </head>
 <body>
@@ -58,11 +137,14 @@
         <input type="date" id="endDate">
         <label>👤 Сотрудник</label>
         <select id="employeeFilter"><option value="">Все сотрудники</option></select>
+
         <div class="filter-row">
             <button id="calculateBtn" class="calc-button">📊 РАССЧИТАТЬ</button>
-            <button id="syncBtn" class="sync-button">☁️ СИНХРОНИЗИРОВАТЬ</button>
+            <button id="exportToSheetBtn" class="export-button">📤 ЭКСПОРТ В ТАБЛИЦУ</button>
+            <button id="importFromSheetBtn" class="sync-button">📥 ИМПОРТ ИЗ ТАБЛИЦЫ</button>
         </div>
         <div id="syncStatus" class="sync-status"></div>
+
         <div class="result-block">
             <div>💰 Итого выплат:</div>
             <div class="result-value" id="totalPayment">0 ₽</div>
@@ -114,11 +196,11 @@
                         <option value="asc">📅 Сначала старые</option>
                     </select>
                 </div>
-                <button id="applyListFilterBtn" style="margin-bottom: 0;">📋 Применить к списку</button>
+                <button id="applyListFilterBtn">📋 Применить к списку</button>
             </div>
             <div style="overflow-x: auto;">
                 <table id="dataTable">
-                    <thead><tr><th class="sort-header">Дата <span class="sort-icon">▼</span></th><th>Сотрудник</th><th>Часы</th><th>Сумма</th><th>Действия</th></tr></thead>
+                    <thead><tr><th class="sort-header">Дата ▼</th><th>Сотрудник</th><th>Часы</th><th>Сумма</th><th>Действия</th></tr></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
@@ -128,27 +210,38 @@
 
 <div id="editModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h3>✏️ Редактировать</h3>
+        <h3>✏️ Редактировать запись</h3>
         <label>📅 Дата</label>
         <input type="date" id="editDate">
-        <label>👤 Сотрудник</label>
-        <div class="autocomplete-container"><input type="text" id="editEmployee"><div id="editAutocompleteList" class="autocomplete-suggestions"></div></div>
+        <label>👤 ФИО сотрудника</label>
+        <div class="autocomplete-container"><input type="text" id="editEmployee" autocomplete="off"><div id="editAutocompleteList" class="autocomplete-suggestions"></div></div>
         <label>⏱ Часы</label>
         <input type="number" id="editHours" step="1">
-        <div id="editDuplicateWarning" class="warning">⚠️ Дубликат</div>
+        <div id="editDuplicateWarning" class="warning">⚠️ Сотрудник уже добавлен на эту дату!</div>
         <div class="modal-buttons"><button id="saveEditBtn">💾 Сохранить</button><button id="cancelEditBtn">❌ Отмена</button></div>
     </div>
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwgzmDwPrajsmWnZ8QlCJVvTsDBthmg93VtnCiCJLmytcUSFvKIemE60pabXeGGksiT_A/exec'; // ⚠️ ЗАМЕНИТЕ НА ВАШ URL
+    // ============================================================
+    // НАСТРОЙКИ
+    // ============================================================
+    // ⚠️ ВСТАВЬТЕ ВАШ URL ИЗ GOOGLE APPS SCRIPT ⚠️
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyKwzH8UCU0EdeKECu0l6l2qp_q82UG80DFGWHTtfc_N-zerxe3NxAN7iSFvq1TrFCAlw/exec';
 
-    let records = [], editingId = null, isExpanded = true, syncInProgress = false;
+    let records = [];
+    let editingId = null;
+    let isExpanded = true;
+    let syncInProgress = false;
+    
     let currentFilter = { startDate: '', endDate: '', employee: '' };
     let listFilter = { year: '', month: '', employee: '', sortOrder: 'desc' };
 
-    const formatDate = (d) => d ? d.split('-').reverse().join('.') : '';
-    const calcPayment = (h) => h === 11 ? h * 372.7 : h * 400;
+    // ============================================================
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+    const formatDate = (d) => { if (!d) return ''; const p = d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; };
+    const calcPayment = (h) => (h === 11 ? h * 372.7 : h * 400);
     const generateId = () => Date.now();
     const saveData = () => localStorage.setItem('workRecords', JSON.stringify(records));
     const loadData = () => { const s = localStorage.getItem('workRecords'); records = s ? JSON.parse(s) : []; saveData(); };
@@ -156,6 +249,9 @@
     const uniqueYears = () => [...new Set(records.map(r => r.date.split('-')[0]))].filter(y => y).sort((a,b)=>b-a);
     const isDuplicate = (date, emp, excludeId) => records.some(r => r.date === date && r.employee === emp && r.id !== excludeId);
 
+    // ============================================================
+    // ФИЛЬТРАЦИЯ
+    // ============================================================
     function filterForReport() {
         let f = [...records];
         if (currentFilter.startDate) f = f.filter(r => r.date >= currentFilter.startDate);
@@ -172,6 +268,9 @@
         return f;
     }
 
+    // ============================================================
+    // ОТОБРАЖЕНИЕ
+    // ============================================================
     function renderReport() {
         const f = filterForReport();
         let h=0, p=0;
@@ -199,6 +298,9 @@
     }
     function updateAll() { renderReport(); renderTable(); }
 
+    // ============================================================
+    // ВЫПАДАЮЩИЕ СПИСКИ
+    // ============================================================
     function updateFilters() {
         const ySel = document.getElementById('yearListFilter');
         const oldY = ySel.value;
@@ -216,6 +318,9 @@
         });
     }
 
+    // ============================================================
+    // АВТОЗАПОЛНЕНИЕ
+    // ============================================================
     function setupAutocomplete(inpId, listId, warnId, dateId) {
         const inp = document.getElementById(inpId), list = document.getElementById(listId);
         inp.addEventListener('input', () => {
@@ -246,9 +351,12 @@
         }
     }
 
+    // ============================================================
+    // CRUD
+    // ============================================================
     function addRecord(date, emp, h) {
         if (!date || !emp || !h) { alert('Заполните поля'); return false; }
-        if (isDuplicate(date, emp, null)) { alert('❌ Дубликат'); return false; }
+        if (isDuplicate(date, emp, null)) { alert('❌ Сотрудник уже добавлен на эту дату'); return false; }
         h = parseFloat(h);
         if (isNaN(h) || h <= 0) { alert('Некорректные часы'); return false; }
         const newRec = { id: generateId(), date, employee: emp.trim(), hours: h, payment: calcPayment(h) };
@@ -259,7 +367,7 @@
         return true;
     }
     function deleteRec(id) {
-        if (confirm('Удалить?')) {
+        if (confirm('Удалить запись?')) {
             records = records.filter(r => r.id !== id);
             saveData();
             updateFilters();
@@ -279,7 +387,7 @@
     function saveEdit() {
         const date = document.getElementById('editDate').value, employee = document.getElementById('editEmployee').value, hours = parseFloat(document.getElementById('editHours').value);
         if (!date || !employee || isNaN(hours) || hours <= 0) { alert('Заполните поля'); return; }
-        if (isDuplicate(date, employee, editingId)) { alert('❌ Дубликат'); return; }
+        if (isDuplicate(date, employee, editingId)) { alert('❌ Сотрудник уже добавлен на эту дату'); return; }
         const idx = records.findIndex(r => r.id === editingId);
         if (idx !== -1) {
             records[idx] = { ...records[idx], date, employee: employee.trim(), hours, payment: calcPayment(hours) };
@@ -290,47 +398,76 @@
         closeEdit();
     }
 
-    async function syncWithCloud() {
+    // ============================================================
+    // СИНХРОНИЗАЦИЯ С GOOGLE SHEETS
+    // ============================================================
+    
+    // ЭКСПОРТ (отправка данных в Google Sheets)
+    async function exportToSheet() {
         if (syncInProgress) return;
         syncInProgress = true;
-        const btn = document.getElementById('syncBtn'), statusDiv = document.getElementById('syncStatus');
+        const btn = document.getElementById('exportToSheetBtn');
+        const statusDiv = document.getElementById('syncStatus');
         btn.classList.add('syncing');
-        statusDiv.innerText = '🔄 Синхронизация...';
+        statusDiv.innerText = '🔄 Экспорт данных...';
+        
+        try {
+            let successCount = 0;
+            for (const rec of records) {
+                const url = `${API_URL}?action=add&id=${rec.id}&date=${encodeURIComponent(rec.date)}&employee=${encodeURIComponent(rec.employee)}&hours=${rec.hours}`;
+                const resp = await fetch(url);
+                const result = await resp.json();
+                if (result.success) successCount++;
+            }
+            statusDiv.innerText = `✅ Экспортировано ${successCount} записей в таблицу`;
+        } catch (err) {
+            console.error(err);
+            statusDiv.innerText = '❌ Ошибка экспорта';
+        } finally {
+            syncInProgress = false;
+            btn.classList.remove('syncing');
+        }
+    }
+    
+    // ИМПОРТ (загрузка данных из Google Sheets)
+    async function importFromSheet() {
+        if (syncInProgress) return;
+        syncInProgress = true;
+        const btn = document.getElementById('importFromSheetBtn');
+        const statusDiv = document.getElementById('syncStatus');
+        btn.classList.add('syncing');
+        statusDiv.innerText = '🔄 Импорт данных...';
+        
         try {
             const resp = await fetch(`${API_URL}?action=get`);
             const json = await resp.json();
             if (json.success && json.records) {
-                const cloudMap = new Map();
-                json.records.forEach(r => cloudMap.set(r.id, r));
-                const mergedMap = new Map();
-                records.forEach(r => mergedMap.set(r.id, r));
-                cloudMap.forEach((r, id) => { if (!mergedMap.has(id)) mergedMap.set(id, r); });
-                records = Array.from(mergedMap.values());
+                records = json.records.map(r => ({
+                    id: r.id,
+                    date: r.date,
+                    employee: r.employee,
+                    hours: r.hours,
+                    payment: calcPayment(r.hours)
+                }));
                 saveData();
-                let added = 0;
-                for (const rec of records) {
-                    if (!cloudMap.has(rec.id)) {
-                        const url = `${API_URL}?action=add&id=${rec.id}&date=${encodeURIComponent(rec.date)}&employee=${encodeURIComponent(rec.employee)}&hours=${rec.hours}`;
-                        const addResp = await fetch(url);
-                        const addJson = await addResp.json();
-                        if (addJson.success) added++;
-                    }
-                }
                 updateFilters();
                 updateAll();
-                statusDiv.innerText = added ? `✅ Добавлено ${added} записей, синхронизация ${new Date().toLocaleTimeString()}` : `✅ Синхронизация ${new Date().toLocaleTimeString()}`;
+                statusDiv.innerText = `✅ Импортировано ${records.length} записей из таблицы`;
             } else {
-                statusDiv.innerText = '❌ Ошибка получения данных';
+                statusDiv.innerText = '❌ Ошибка импорта';
             }
         } catch (err) {
             console.error(err);
-            statusDiv.innerText = '❌ Ошибка синхронизации';
+            statusDiv.innerText = '❌ Ошибка импорта';
         } finally {
             syncInProgress = false;
             btn.classList.remove('syncing');
         }
     }
 
+    // ============================================================
+    // УПРАВЛЕНИЕ ФИЛЬТРАМИ
+    // ============================================================
     function applyReportFilters() {
         currentFilter.startDate = document.getElementById('startDate').value;
         currentFilter.endDate = document.getElementById('endDate').value;
@@ -355,17 +492,23 @@
         isExpanded = !isExpanded;
     }
 
+    // ============================================================
+    // ИНИЦИАЛИЗАЦИЯ
+    // ============================================================
     function init() {
         loadData();
         updateFilters();
         updateAll();
         setupAutocomplete('newEmployee','autocompleteList','duplicateWarning','newDate');
         setupAutocomplete('editEmployee','editAutocompleteList','editDuplicateWarning','editDate');
+        
         document.getElementById('calculateBtn').addEventListener('click', applyReportFilters);
-        document.getElementById('syncBtn').addEventListener('click', syncWithCloud);
+        document.getElementById('exportToSheetBtn').addEventListener('click', exportToSheet);
+        document.getElementById('importFromSheetBtn').addEventListener('click', importFromSheet);
         document.getElementById('applyListFilterBtn').addEventListener('click', applyListFilters);
         document.getElementById('sortOrder').addEventListener('change', applyListFilters);
         document.querySelector('.sort-header')?.addEventListener('click', toggleSort);
+        
         document.getElementById('addBtn').addEventListener('click', () => {
             const d = document.getElementById('newDate').value, e = document.getElementById('newEmployee').value, h = document.getElementById('newHours').value;
             if (addRecord(d, e, h)) {
@@ -380,6 +523,7 @@
         document.getElementById('cancelEditBtn').addEventListener('click', closeEdit);
         document.getElementById('expandHeader').addEventListener('click', toggleExpand);
         document.getElementById('editModal').addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) closeEdit(); });
+        
         applyReportFilters();
         applyListFilters();
     }
