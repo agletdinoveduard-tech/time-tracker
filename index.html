@@ -251,7 +251,7 @@
         <h1>📊 Учёт времени сотрудников</h1>
 
         <!-- Фильтры для расчёта итогов -->
-        <h3>🔍 Отчёт</h3>
+        <h3>🔍 Отчет</h3>
         
         <label>📅 Дата начала</label>
         <input type="date" id="startDate">
@@ -307,7 +307,6 @@
             <span class="expand-icon" id="expandIcon">▲</span>
         </div>
         <div id="recordsContent">
-            <!-- Фильтры для списка -->
             <div class="list-filters">
                 <h4>🎯 Фильтры для списка</h4>
                 <div class="filter-row">
@@ -393,53 +392,46 @@
     let editingId = null;
     let isExpanded = true;
     let syncInProgress = false;
-    let lastSyncTime = null;
     
     let currentFilter = { startDate: '', endDate: '', employee: '' };
     let listFilter = { year: '', month: '', employee: '', sortOrder: 'desc' };
 
     // ============================================================
-    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ФУНКЦИЯ НОРМАЛИЗАЦИИ ДАТЫ (ОБРАБАТЫВАЕТ ISO ФОРМАТЫ)
     // ============================================================
-    
-    function normalizeDate(dateStr) {
-        // Если дата уже в формате YYYY-MM-DD
-        if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateStr;
+    function normalizeDate(dateValue) {
+        if (!dateValue) return '';
+        
+        // Если уже в формате YYYY-MM-DD
+        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateValue;
         }
+        
         // Если дата в формате DD.MM.YYYY
-        if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
-            const parts = dateStr.split('.');
+        if (typeof dateValue === 'string' && dateValue.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
+            const parts = dateValue.split('.');
             return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
-        // Если дата пришла как объект Date из Google (число)
-        if (typeof dateStr === 'number') {
-            const d = new Date(dateStr);
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
+        
+        // Пробуем распарсить ISO строку (2026-05-04T19:00:00.000Z)
+        const d = new Date(dateValue);
+        if (!isNaN(d.getTime())) {
+            const year = d.getUTCFullYear();
+            const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(d.getUTCDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        // Если дата как строка, но не в нужном формате
-        if (typeof dateStr === 'string') {
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) {
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-        }
-        return dateStr;
+        
+        return dateValue;
     }
     
     function formatDateForDisplay(dateStr) {
         const normalized = normalizeDate(dateStr);
-        if (typeof normalized === 'string' && normalized.includes('-')) {
+        if (normalized && normalized.includes('-')) {
             const parts = normalized.split('-');
             return `${parts[2]}.${parts[1]}.${parts[0]}`;
         }
-        return dateStr;
+        return dateStr || '';
     }
     
     function calculatePayment(hours) {
@@ -456,7 +448,6 @@
         const saved = localStorage.getItem('workRecords');
         if (saved) {
             records = JSON.parse(saved);
-            // Нормализуем даты при загрузке
             records = records.map(r => ({ ...r, date: normalizeDate(r.date) }));
         } else {
             records = [];
@@ -526,7 +517,7 @@
         let totalHours = 0, totalPayment = 0;
         filtered.forEach(r => { totalHours += r.hours; totalPayment += r.payment; });
         document.getElementById('totalHours').textContent = totalHours;
-        document.getElementById('totalPayment').textContent = formatCurrency(totalPayment);
+        document.getElementById('totalPayment').textContent = totalPayment.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
         document.getElementById('recordsCount').textContent = filtered.length;
     }
     
@@ -540,7 +531,7 @@
             row.insertCell(0).textContent = formatDateForDisplay(record.date);
             row.insertCell(1).textContent = record.employee;
             row.insertCell(2).textContent = record.hours;
-            row.insertCell(3).textContent = formatCurrency(record.payment);
+            row.insertCell(3).textContent = record.payment.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
             
             const actionsCell = row.insertCell(4);
             actionsCell.className = 'action-buttons';
@@ -566,12 +557,11 @@
         const sortIcon = document.querySelector('.sort-icon');
         if (sortIcon) sortIcon.textContent = listFilter.sortOrder === 'desc' ? '▼' : '▲';
     }
-    
-    function formatCurrency(value) {
-        return value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
-    }
 
-    function updateAll() { renderReport(); renderTable(); }
+    function updateAll() { 
+        renderReport(); 
+        renderTable(); 
+    }
 
     // ============================================================
     // ЗАПОЛНЕНИЕ ВЫПАДАЮЩИХ СПИСКОВ
@@ -653,7 +643,7 @@
     }
 
     // ============================================================
-    // ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ
+    // ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ (ТОЛЬКО ПО КНОПКЕ)
     // ============================================================
     
     async function syncWithCloud() {
@@ -667,18 +657,26 @@
         try {
             const response = await fetch(API_URL);
             const cloudRecords = await response.json();
+            
             if (Array.isArray(cloudRecords)) {
                 const map = new Map();
                 // Добавляем облачные записи с нормализацией дат
                 cloudRecords.forEach(r => {
                     const normalizedDate = normalizeDate(r.date);
-                    map.set(r.id, { ...r, date: normalizedDate, payment: calculatePayment(r.hours) });
+                    map.set(r.id, { 
+                        id: r.id, 
+                        date: normalizedDate, 
+                        employee: r.employee, 
+                        hours: r.hours, 
+                        payment: calculatePayment(r.hours) 
+                    });
                 });
-                // Добавляем локальные записи
-                records.forEach(r => map.set(r.id, { ...r, payment: calculatePayment(r.hours) }));
+                // Добавляем локальные записи (приоритет локальных)
+                records.forEach(r => map.set(r.id, r));
                 records = Array.from(map.values());
                 saveData();
             }
+            
             // Отправляем все записи в облако
             for (const record of records) {
                 await fetch(API_URL, { 
@@ -687,14 +685,15 @@
                     body: JSON.stringify({ id: record.id, date: record.date, employee: record.employee, hours: record.hours }) 
                 });
             }
-            lastSyncTime = new Date();
-            statusEl.textContent = `✅ Синхронизировано: ${lastSyncTime.toLocaleTimeString()}`;
+            
+            statusEl.textContent = `✅ Синхронизировано: ${new Date().toLocaleTimeString()}`;
             updateYearFilters();
             updateEmployeeFilters();
             updateAll();
+            
         } catch (error) {
             console.error(error);
-            statusEl.textContent = '❌ Ошибка синхронизации. Проверьте интернет или URL скрипта.';
+            statusEl.textContent = '❌ Ошибка синхронизации';
         } finally {
             syncInProgress = false;
             if (syncBtn) syncBtn.classList.remove('syncing');
@@ -728,7 +727,6 @@
         updateYearFilters();
         updateEmployeeFilters();
         updateAll();
-        syncWithCloud();
         return true;
     }
     
@@ -740,7 +738,6 @@
             updateYearFilters();
             updateEmployeeFilters();
             updateAll();
-            syncWithCloud();
         }
     }
     
@@ -776,7 +773,6 @@
             updateYearFilters();
             updateEmployeeFilters();
             updateAll();
-            syncWithCloud();
         }
         closeEditModal();
     }
@@ -816,7 +812,7 @@
     }
 
     // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ
+    // ИНИЦИАЛИЗАЦИЯ (БЕЗ АВТОМАТИЧЕСКОЙ СИНХРОНИЗАЦИИ)
     // ============================================================
     
     function init() {
@@ -853,7 +849,8 @@
         
         applyReportFilters();
         applyListFilters();
-        setTimeout(() => syncWithCloud(), 2000);
+        
+        // ⚠️ АВТОМАТИЧЕСКАЯ СИНХРОНИЗАЦИЯ УБРАНА
     }
     
     init();
