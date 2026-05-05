@@ -250,8 +250,7 @@
     <div class="card">
         <h1>📊 Учёт времени сотрудников</h1>
 
-        <!-- Фильтры для расчёта итогов -->
-        <h3>🔍 Отчет</h3>
+        <h3>🔍 Отчёт</h3>
         
         <label>📅 Дата начала</label>
         <input type="date" id="startDate">
@@ -270,7 +269,6 @@
         </div>
         <div id="syncStatus" class="sync-status"></div>
 
-        <!-- Результаты расчёта -->
         <div class="result-block">
             <div>💰 Итого выплат:</div>
             <div class="result-value" id="totalPayment">0 ₽</div>
@@ -282,7 +280,6 @@
         </div>
     </div>
 
-    <!-- Форма добавления -->
     <div class="card add-form">
         <h3>✏️ Добавить запись</h3>
         <label>📅 Дата</label>
@@ -300,7 +297,6 @@
         <button id="addBtn">➕ Добавить</button>
     </div>
 
-    <!-- Список записей -->
     <div class="card">
         <div class="expand-header" id="expandHeader">
             <h3>📋 Список записей</h3>
@@ -360,7 +356,6 @@
     </div>
 </div>
 
-<!-- Модальное окно редактирования -->
 <div id="editModal" class="modal" style="display: none;">
     <div class="modal-content">
         <h3>✏️ Редактировать запись</h3>
@@ -386,7 +381,7 @@
     // НАСТРОЙКИ
     // ============================================================
     // ⚠️ ВСТАВЬТЕ ВАШ URL ОТ GOOGLE APPS SCRIPT ⚠️
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw0tEewQdZ5gjQXx17UAG8a26W9wFAi67BuCIxaPQ35mrcOIItY1dx_5MzSesZuIUjstw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxagimHJ0apIreyMhqz8mXT9b02g3ItjwFGlgcmGIejUbIbfTkX4i3SzUjkuHp5i3zMvg/exec';
     
     let records = [];
     let editingId = null;
@@ -397,23 +392,16 @@
     let listFilter = { year: '', month: '', employee: '', sortOrder: 'desc' };
 
     // ============================================================
-    // ФУНКЦИЯ НОРМАЛИЗАЦИИ ДАТЫ (ОБРАБАТЫВАЕТ ISO ФОРМАТЫ)
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // ============================================================
+    
     function normalizeDate(dateValue) {
         if (!dateValue) return '';
-        
-        // Если уже в формате YYYY-MM-DD
-        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateValue;
-        }
-        
-        // Если дата в формате DD.MM.YYYY
+        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) return dateValue;
         if (typeof dateValue === 'string' && dateValue.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
             const parts = dateValue.split('.');
             return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
-        
-        // Пробуем распарсить ISO строку (2026-05-04T19:00:00.000Z)
         const d = new Date(dateValue);
         if (!isNaN(d.getTime())) {
             const year = d.getUTCFullYear();
@@ -421,7 +409,6 @@
             const day = String(d.getUTCDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        
         return dateValue;
     }
     
@@ -643,7 +630,7 @@
     }
 
     // ============================================================
-    // ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ (ТОЛЬКО ПО КНОПКЕ)
+    // СИНХРОНИЗАЦИЯ - ТОЛЬКО GET ЗАПРОСЫ
     // ============================================================
     
     async function syncWithCloud() {
@@ -655,13 +642,14 @@
         statusEl.textContent = '🔄 Синхронизация...';
         
         try {
+            // Получаем данные из облака (простой GET запрос)
             const response = await fetch(API_URL);
-            const cloudRecords = await response.json();
+            const result = await response.json();
             
-            if (Array.isArray(cloudRecords)) {
+            if (result.success && result.records) {
                 const map = new Map();
-                // Добавляем облачные записи с нормализацией дат
-                cloudRecords.forEach(r => {
+                // Добавляем облачные записи
+                result.records.forEach(r => {
                     const normalizedDate = normalizeDate(r.date);
                     map.set(r.id, { 
                         id: r.id, 
@@ -671,43 +659,26 @@
                         payment: calculatePayment(r.hours) 
                     });
                 });
-                // Добавляем локальные записи (приоритет локальных)
+                // Добавляем локальные записи
                 records.forEach(r => map.set(r.id, r));
                 records = Array.from(map.values());
                 saveData();
+                statusEl.textContent = `✅ Синхронизировано: ${new Date().toLocaleTimeString()}`;
+            } else {
+                statusEl.textContent = '❌ Ошибка: ' + (result.error || 'Неизвестная ошибка');
             }
             
-            // Отправляем все записи в облако
-            for (const record of records) {
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: record.id, date: record.date, employee: record.employee, hours: record.hours }) 
-                });
-            }
-            
-            statusEl.textContent = `✅ Синхронизировано: ${new Date().toLocaleTimeString()}`;
             updateYearFilters();
             updateEmployeeFilters();
             updateAll();
             
         } catch (error) {
             console.error(error);
-            statusEl.textContent = '❌ Ошибка синхронизации';
+            statusEl.textContent = '❌ Ошибка синхронизации. Проверьте интернет или URL скрипта.';
         } finally {
             syncInProgress = false;
             if (syncBtn) syncBtn.classList.remove('syncing');
         }
-    }
-    
-    async function deleteFromCloud(id) {
-        try { 
-            await fetch(API_URL, { 
-                method: 'DELETE', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id }) 
-            }); 
-        } catch(e) { console.error(e); }
     }
 
     // ============================================================
@@ -734,7 +705,6 @@
         if (confirm('Удалить эту запись?')) {
             records = records.filter(r => r.id !== id);
             saveData();
-            await deleteFromCloud(id);
             updateYearFilters();
             updateEmployeeFilters();
             updateAll();
@@ -778,7 +748,7 @@
     }
 
     // ============================================================
-    // УПРАВЛЕНИЕ ФИЛЬТРАМИ
+    // УПРАВЛЕНИЕ ФИЛЬТРАМИ И ИНТЕРФЕЙСОМ
     // ============================================================
     
     function applyReportFilters() {
@@ -812,7 +782,7 @@
     }
 
     // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ (БЕЗ АВТОМАТИЧЕСКОЙ СИНХРОНИЗАЦИИ)
+    // ИНИЦИАЛИЗАЦИЯ
     // ============================================================
     
     function init() {
@@ -849,8 +819,6 @@
         
         applyReportFilters();
         applyListFilters();
-        
-        // ⚠️ АВТОМАТИЧЕСКАЯ СИНХРОНИЗАЦИЯ УБРАНА
     }
     
     init();
