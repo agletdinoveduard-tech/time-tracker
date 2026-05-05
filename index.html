@@ -399,8 +399,48 @@
     let listFilter = { year: '', month: '', employee: '', sortOrder: 'desc' };
 
     // ============================================================
-    // ОСНОВНЫЕ ФУНКЦИИ
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // ============================================================
+    
+    function normalizeDate(dateStr) {
+        // Если дата уже в формате YYYY-MM-DD
+        if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateStr;
+        }
+        // Если дата в формате DD.MM.YYYY
+        if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
+            const parts = dateStr.split('.');
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        // Если дата пришла как объект Date из Google (число)
+        if (typeof dateStr === 'number') {
+            const d = new Date(dateStr);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        // Если дата как строка, но не в нужном формате
+        if (typeof dateStr === 'string') {
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        }
+        return dateStr;
+    }
+    
+    function formatDateForDisplay(dateStr) {
+        const normalized = normalizeDate(dateStr);
+        if (typeof normalized === 'string' && normalized.includes('-')) {
+            const parts = normalized.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+        return dateStr;
+    }
     
     function calculatePayment(hours) {
         if (hours === 11) return hours * 372.7;
@@ -416,6 +456,8 @@
         const saved = localStorage.getItem('workRecords');
         if (saved) {
             records = JSON.parse(saved);
+            // Нормализуем даты при загрузке
+            records = records.map(r => ({ ...r, date: normalizeDate(r.date) }));
         } else {
             records = [];
         }
@@ -431,13 +473,17 @@
     }
 
     function getUniqueYears() {
-        const years = records.map(r => parseInt(r.date.split('-')[0]));
+        const years = records.map(r => {
+            const parts = r.date.split('-');
+            return parseInt(parts[0]);
+        });
         return [...new Set(years)].filter(y => !isNaN(y)).sort((a, b) => b - a);
     }
 
     function isDuplicate(date, employee, excludeId = null) {
+        const normalizedDate = normalizeDate(date);
         return records.some(r => 
-            r.date === date && 
+            r.date === normalizedDate && 
             r.employee === employee && 
             (excludeId === null || r.id !== excludeId)
         );
@@ -475,15 +521,6 @@
     // ОТОБРАЖЕНИЕ
     // ============================================================
     
-    function formatDate(dateStr) {
-        const parts = dateStr.split('-');
-        return `${parts[2]}.${parts[1]}.${parts[0]}`;
-    }
-    
-    function formatCurrency(value) {
-        return value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
-    }
-
     function renderReport() {
         const filtered = filterRecordsForReport();
         let totalHours = 0, totalPayment = 0;
@@ -500,7 +537,7 @@
         
         filtered.forEach(record => {
             const row = tbody.insertRow();
-            row.insertCell(0).textContent = formatDate(record.date);
+            row.insertCell(0).textContent = formatDateForDisplay(record.date);
             row.insertCell(1).textContent = record.employee;
             row.insertCell(2).textContent = record.hours;
             row.insertCell(3).textContent = formatCurrency(record.payment);
@@ -528,6 +565,10 @@
         
         const sortIcon = document.querySelector('.sort-icon');
         if (sortIcon) sortIcon.textContent = listFilter.sortOrder === 'desc' ? '▼' : '▲';
+    }
+    
+    function formatCurrency(value) {
+        return value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
     }
 
     function updateAll() { renderReport(); renderTable(); }
@@ -628,13 +669,23 @@
             const cloudRecords = await response.json();
             if (Array.isArray(cloudRecords)) {
                 const map = new Map();
-                cloudRecords.forEach(r => map.set(r.id, r));
-                records.forEach(r => map.set(r.id, r));
+                // Добавляем облачные записи с нормализацией дат
+                cloudRecords.forEach(r => {
+                    const normalizedDate = normalizeDate(r.date);
+                    map.set(r.id, { ...r, date: normalizedDate, payment: calculatePayment(r.hours) });
+                });
+                // Добавляем локальные записи
+                records.forEach(r => map.set(r.id, { ...r, payment: calculatePayment(r.hours) }));
                 records = Array.from(map.values());
                 saveData();
             }
+            // Отправляем все записи в облако
             for (const record of records) {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(record) });
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: record.id, date: record.date, employee: record.employee, hours: record.hours }) 
+                });
             }
             lastSyncTime = new Date();
             statusEl.textContent = `✅ Синхронизировано: ${lastSyncTime.toLocaleTimeString()}`;
@@ -651,7 +702,13 @@
     }
     
     async function deleteFromCloud(id) {
-        try { await fetch(API_URL, { method: 'DELETE', body: JSON.stringify({ id: id }) }); } catch(e) { console.error(e); }
+        try { 
+            await fetch(API_URL, { 
+                method: 'DELETE', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id }) 
+            }); 
+        } catch(e) { console.error(e); }
     }
 
     // ============================================================
@@ -660,11 +717,12 @@
     
     function addRecord(date, employee, hours) {
         if (!date || !employee || !hours) { alert('Заполните все поля!'); return false; }
-        if (isDuplicate(date, employee)) { alert('❌ Сотрудник уже добавлен на эту дату!'); return false; }
+        const normalizedDate = normalizeDate(date);
+        if (isDuplicate(normalizedDate, employee)) { alert('❌ Сотрудник уже добавлен на эту дату!'); return false; }
         hours = parseFloat(hours);
         if (isNaN(hours) || hours <= 0) { alert('Введите корректное количество часов'); return false; }
         
-        const newRecord = { id: generateId(), date, employee: employee.trim(), hours, payment: calculatePayment(hours) };
+        const newRecord = { id: generateId(), date: normalizedDate, employee: employee.trim(), hours, payment: calculatePayment(hours) };
         records.push(newRecord);
         saveData();
         updateYearFilters();
@@ -708,11 +766,12 @@
         const employee = document.getElementById('editEmployee').value;
         const hours = parseFloat(document.getElementById('editHours').value);
         if (!date || !employee || !hours || isNaN(hours) || hours <= 0) { alert('Заполните все поля!'); return; }
-        if (isDuplicate(date, employee, editingId)) { alert('❌ Сотрудник уже добавлен на эту дату!'); return; }
+        const normalizedDate = normalizeDate(date);
+        if (isDuplicate(normalizedDate, employee, editingId)) { alert('❌ Сотрудник уже добавлен на эту дату!'); return; }
         
         const index = records.findIndex(r => r.id === editingId);
         if (index !== -1) {
-            records[index] = { ...records[index], date, employee: employee.trim(), hours, payment: calculatePayment(hours) };
+            records[index] = { ...records[index], date: normalizedDate, employee: employee.trim(), hours, payment: calculatePayment(hours) };
             saveData();
             updateYearFilters();
             updateEmployeeFilters();
