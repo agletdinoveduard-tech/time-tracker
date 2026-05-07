@@ -4,71 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Учёт времени сотрудников</title>
+    
     <!-- Иконка для рабочего стола iPhone -->
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2334c759'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E📊%3C/text%3E%3C/svg%3E">
     
-    <!-- Название приложения -->
     <meta name="apple-mobile-web-app-title" content="Учёт">
     <meta name="application-name" content="Учёт">
-    
-    <!-- Цвет фона и режим приложения -->
     <meta name="theme-color" content="#34c759">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    
     <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 16px;
-            padding-bottom: 40px;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: system-ui, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 16px; padding-bottom: 40px; }
         .container { max-width: 600px; margin: 0 auto; }
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        h1 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
-        h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        h1 { font-size: 24px; margin: 0 0 8px; }
+        h3 { font-size: 18px; margin: 0 0 12px; }
         label { font-weight: 500; font-size: 14px; display: block; margin-bottom: 6px; }
-        select, input, button {
-            width: 100%;
-            padding: 14px 12px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 14px;
-            margin-bottom: 16px;
-            font-family: inherit;
-        }
-        button {
-            background: #007aff;
-            color: white;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        select, input, button { width: 100%; padding: 14px 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 14px; margin-bottom: 16px; }
+        button { background: #007aff; color: white; border: none; font-weight: 600; cursor: pointer; }
         button:active { background: #005fc1; transform: scale(0.98); }
         .btn-delete { background: #ff3b30; }
         .btn-edit { background: #ff9500; }
         .calc-button { background: #34c759; }
+        .settings-button { background: #5856d6; }
         .export-button { background: #34c759; }
         .import-button { background: #007aff; }
-        .settings-button { background: #5856d6; }
-        .result-block {
-            background: #eef2ff;
-            border-radius: 20px;
-            padding: 16px;
-            text-align: center;
-            margin-top: 16px;
-        }
+        .result-block { background: #eef2ff; border-radius: 20px; padding: 16px; text-align: center; margin-top: 16px; }
         .result-value { font-size: 28px; font-weight: 700; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
@@ -76,133 +40,69 @@
         .add-form { background: #fff8e7; border: 1px solid #ffe5b4; }
         .action-buttons { display: flex; gap: 8px; }
         .action-buttons button { padding: 6px 12px; font-size: 12px; margin-bottom: 0; width: auto; }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 20px;
-            width: 90%;
-            max-width: 350px;
-        }
-        .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
-        .modal-buttons button { margin-bottom: 0; }
         .filter-row { display: flex; gap: 8px; margin-bottom: 16px; }
         .filter-row select, .filter-row input, .filter-row button { flex: 1; margin-bottom: 0; }
-        .list-filters {
-            background: #f8f8f8;
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 16px;
-        }
+        .list-filters { background: #f8f8f8; border-radius: 16px; padding: 12px; margin-bottom: 16px; }
         .list-filters h4 { margin: 0 0 10px; font-size: 14px; color: #666; }
         .autocomplete-container { position: relative; width: 100%; }
-        .autocomplete-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 14px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-        }
+        .autocomplete-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 14px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; }
         .autocomplete-suggestions div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .autocomplete-suggestions div:hover { background: #f0f0f0; }
-        .expand-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            margin-bottom: 12px;
-        }
+        .sort-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+        .sort-select { width: auto; padding: 8px 12px; font-size: 14px; margin-bottom: 0; }
+        .expand-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
         .expand-header h3 { margin: 0; }
         .expand-icon { font-size: 20px; }
         .warning { color: #ff3b30; font-size: 12px; margin-top: -12px; margin-bottom: 12px; display: none; }
-        .sort-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
-        .sort-select { width: auto; padding: 8px 12px; font-size: 14px; margin-bottom: 0; }
+        .current-rates { font-size: 12px; color: #666; margin-top: 8px; padding: 8px; background: #f8f8f8; border-radius: 12px; text-align: center; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 24px; padding: 20px; width: 90%; max-width: 350px; }
+        .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
         .import-file { display: none; }
-        .current-rates {
-            font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            padding: 8px;
-            background: #f8f8f8;
-            border-radius: 12px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>📊 Учёт времени сотрудников</h1>
+            <h1>📊 Учёт времени</h1>
             <button id="settingsBtn" class="settings-button" style="width: auto; padding: 8px 16px;">⚙️</button>
         </div>
-        
-        <!-- Отображение текущих тарифов -->
-        <div class="current-rates" id="currentRatesDisplay">
-            📌 Текущие тарифы: 11ч = 372.7 ₽/ч | &lt;11ч = 400 ₽/ч
-        </div>
+        <div class="current-rates" id="currentRatesDisplay">📌 Текущие тарифы: 11ч = 372.7 ₽/ч | &lt;11ч = 400 ₽/ч</div>
         
         <h3>🔍 Отчёт</h3>
-        <label>📅 Дата начала</label>
-        <input type="date" id="startDate">
-        <label>📅 Дата конца</label>
-        <input type="date" id="endDate">
-        <label>👤 Сотрудник</label>
-        <select id="employeeFilter"><option value="">Все сотрудники</option></select>
-
+        <label>📅 Дата начала</label><input type="date" id="startDate">
+        <label>📅 Дата конца</label><input type="date" id="endDate">
+        <label>👤 Сотрудник</label><select id="employeeFilter"><option value="">Все сотрудники</option></select>
         <div class="filter-row">
             <button id="calculateBtn" class="calc-button">📊 РАССЧИТАТЬ</button>
             <button id="exportBtn" class="export-button">💾 ЭКСПОРТ</button>
             <button id="importBtn" class="import-button">📂 ИМПОРТ</button>
         </div>
         <input type="file" id="importFile" class="import-file" accept=".json">
-
         <div class="result-block">
             <div>💰 Итого выплат:</div>
             <div class="result-value" id="totalPayment">0 ₽</div>
-            <div style="margin-top: 12px;">⏱ Итого часов:</div>
+            <div>⏱ Итого часов:</div>
             <div class="result-value" id="totalHours">0</div>
-            <div style="margin-top: 12px; font-size: 12px;">📊 Количество записей: <span id="recordsCount">0</span></div>
+            <div>📊 Количество записей: <span id="recordsCount">0</span></div>
         </div>
     </div>
 
     <div class="card add-form">
         <h3>✏️ Добавить запись</h3>
-        <label>📅 Дата</label>
-        <input type="date" id="newDate">
+        <label>📅 Дата</label><input type="date" id="newDate">
         <label>👤 ФИО сотрудника</label>
         <div class="autocomplete-container">
             <input type="text" id="newEmployee" placeholder="Иванов Иван" autocomplete="off">
             <div id="autocompleteList" class="autocomplete-suggestions"></div>
         </div>
-        <label>⏱ Часы</label>
-        <input type="number" id="newHours" step="1" placeholder="8">
+        <label>⏱ Часы</label><input type="number" id="newHours" step="1" placeholder="8">
         <div id="duplicateWarning" class="warning">⚠️ Сотрудник уже добавлен на эту дату!</div>
         <button id="addBtn">➕ Добавить</button>
     </div>
 
     <div class="card">
-        <div class="expand-header" id="expandHeader">
-            <h3>📋 Список записей</h3>
-            <span class="expand-icon" id="expandIcon">▲</span>
-        </div>
+        <div class="expand-header" id="expandHeader"><h3>📋 Список записей</h3><span class="expand-icon" id="expandIcon">▲</span></div>
         <div id="recordsContent">
             <div class="list-filters">
                 <h4>🎯 Фильтры для списка</h4>
@@ -217,6 +117,9 @@
                     </select>
                 </div>
                 <div class="filter-row">
+                    <input type="date" id="exactDateFilter" placeholder="Конкретная дата">
+                </div>
+                <div class="filter-row">
                     <select id="employeeListFilter"><option value="">Все сотрудники</option></select>
                 </div>
                 <div class="sort-row">
@@ -227,412 +130,284 @@
                 </div>
                 <button id="applyListFilterBtn">📋 Применить к списку</button>
             </div>
-            <div style="overflow-x: auto;">
-                <table id="dataTable">
-                    <thead><tr><th class="sort-header">Дата ▼</th><th>Сотрудник</th><th>Часы</th><th>Сумма</th><th>Действия</th></tr></thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
+            <div style="overflow-x: auto;"><table id="dataTable"><thead><tr><th class="sort-header">Дата ▼</th><th>Сотрудник</th><th>Часы</th><th>Сумма</th><th>Действия</th></tr></thead><tbody id="tableBody"></tbody><tr></div>
         </div>
     </div>
 </div>
 
-<!-- Модальное окно настроек тарифов -->
 <div id="settingsModal" class="modal" style="display: none;">
     <div class="modal-content">
         <h3>⚙️ Настройка тарифов</h3>
-        <p style="font-size: 12px; color: #666; margin-bottom: 16px;">⚠️ Новые тарифы будут применяться только к новым записям. Старые записи не изменятся.</p>
-        <label>💰 Ставка для 11 часов (₽/час)</label>
-        <input type="number" id="rate11" step="0.1" value="372.7">
-        <label>💰 Ставка для часов менее 11 (₽/час)</label>
-        <input type="number" id="rateLess" step="0.1" value="400">
-        <div class="modal-buttons">
-            <button id="saveSettingsBtn">💾 Сохранить</button>
-            <button id="cancelSettingsBtn" style="background:#8e8e93;">❌ Отмена</button>
-        </div>
+        <p style="font-size: 12px; color: #666;">⚠️ Новые тарифы только для новых записей. Старые не изменятся.</p>
+        <label>💰 Ставка для 11 часов (₽/час)</label><input type="number" id="rate11" step="0.1" value="372.7">
+        <label>💰 Ставка для часов &lt; 11 (₽/час)</label><input type="number" id="rateLess" step="0.1" value="400">
+        <div class="modal-buttons"><button id="saveSettingsBtn">💾 Сохранить</button><button id="cancelSettingsBtn">❌ Отмена</button></div>
     </div>
 </div>
 
 <div id="editModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h3>✏️ Редактировать запись</h3>
-        <label>📅 Дата</label>
-        <input type="date" id="editDate">
-        <label>👤 ФИО сотрудника</label>
-        <div class="autocomplete-container"><input type="text" id="editEmployee" autocomplete="off"><div id="editAutocompleteList" class="autocomplete-suggestions"></div></div>
-        <label>⏱ Часы</label>
-        <input type="number" id="editHours" step="1">
-        <div id="editDuplicateWarning" class="warning">⚠️ Сотрудник уже добавлен на эту дату!</div>
+        <h3>✏️ Редактировать</h3>
+        <label>📅 Дата</label><input type="date" id="editDate">
+        <label>👤 Сотрудник</label><div class="autocomplete-container"><input type="text" id="editEmployee"><div id="editAutocompleteList" class="autocomplete-suggestions"></div></div>
+        <label>⏱ Часы</label><input type="number" id="editHours" step="1">
+        <div id="editDuplicateWarning" class="warning">⚠️ Дубликат</div>
         <div class="modal-buttons"><button id="saveEditBtn">💾 Сохранить</button><button id="cancelEditBtn">❌ Отмена</button></div>
     </div>
 </div>
 
 <script>
-    // ============================================================
-    // БАЗА ДАННЫХ
-    // ============================================================
-    let records = [];
-    let editingId = null;
-    let isExpanded = true;
-    
-    // Тарифы для НОВЫХ записей
-    let rates = {
-        rate11: 372.7,
-        rateLess: 400
-    };
-    
+    let records = [], editingId = null, isExpanded = true;
+    let rates = { rate11: 372.7, rateLess: 400 };
     let currentFilter = { startDate: '', endDate: '', employee: '' };
-    let listFilter = { year: '', month: '', employee: '', sortOrder: 'desc' };
+    let listFilter = { year: '', month: '', exactDate: '', employee: '', sortOrder: 'desc' };
 
-    // ============================================================
-    // ФУНКЦИИ ДЛЯ РАБОТЫ С ТАРИФАМИ
-    // ============================================================
-    
-    function loadRates() {
-        const savedRates = localStorage.getItem('workRates');
-        if (savedRates) {
-            const parsed = JSON.parse(savedRates);
-            rates.rate11 = parsed.rate11 !== undefined ? parsed.rate11 : 372.7;
-            rates.rateLess = parsed.rateLess !== undefined ? parsed.rateLess : 400;
-        }
-        // Обновляем отображение
-        document.getElementById('rate11').value = rates.rate11;
-        document.getElementById('rateLess').value = rates.rateLess;
-        updateRatesDisplay();
+    // Даты
+    function normalizeDate(v) {
+        if (!v) return '';
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+        if (typeof v === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(v)) { const p = v.split('.'); return `${p[2]}-${p[1]}-${p[0]}`; }
+        const d = new Date(v);
+        if (!isNaN(d)) { return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
+        return v;
     }
-    
-    function saveRates() {
-        localStorage.setItem('workRates', JSON.stringify(rates));
-        updateRatesDisplay();
-    }
-    
-    // Обновление отображения текущих тарифов
-    function updateRatesDisplay() {
-        const display = document.getElementById('currentRatesDisplay');
-        if (display) {
-            display.innerHTML = `📌 Текущие тарифы: 11ч = ${rates.rate11} ₽/ч | &lt;11ч = ${rates.rateLess} ₽/ч`;
-        }
-    }
-    
-    // Расчёт выплаты для НОВОЙ записи (по текущим тарифам)
-    function calculatePaymentForNewRecord(hours) {
-        if (hours === 11) return hours * rates.rate11;
-        if (hours < 11) return hours * rates.rateLess;
-        return hours * rates.rateLess;
-    }
-    
-    // При редактировании записи пересчитываем по текущим тарифам
-    function calculatePaymentForEdit(hours) {
-        if (hours === 11) return hours * rates.rate11;
-        if (hours < 11) return hours * rates.rateLess;
-        return hours * rates.rateLess;
-    }
-    
-    function openSettingsModal() {
-        document.getElementById('rate11').value = rates.rate11;
-        document.getElementById('rateLess').value = rates.rateLess;
-        document.getElementById('settingsModal').style.display = 'flex';
-    }
-    
-    function closeSettingsModal() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-    
-    function saveSettings() {
-        const newRate11 = parseFloat(document.getElementById('rate11').value);
-        const newRateLess = parseFloat(document.getElementById('rateLess').value);
-        
-        if (isNaN(newRate11) || newRate11 <= 0) {
-            alert('Введите корректную ставку для 11 часов');
-            return;
-        }
-        if (isNaN(newRateLess) || newRateLess <= 0) {
-            alert('Введите корректную ставку для часов менее 11');
-            return;
-        }
-        
-        rates.rate11 = newRate11;
-        rates.rateLess = newRateLess;
-        saveRates();
-        
-        closeSettingsModal();
-        alert('✅ Тарифы сохранены. Новые записи будут рассчитываться по новым ставкам. Старые записи не изменились.');
-    }
+    function formatDate(d) { if(!d) return ''; const p = d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
 
-    // ============================================================
-    // ФУНКЦИИ ДЛЯ РАБОТЫ С ДАТАМИ
-    // ============================================================
-    
-    function normalizeDate(dateValue) {
-        if (!dateValue) return '';
-        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateValue;
-        }
-        if (typeof dateValue === 'string' && dateValue.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
-            const parts = dateValue.split('.');
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        const d = new Date(dateValue);
-        if (!isNaN(d.getTime())) {
-            const year = d.getUTCFullYear();
-            const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const day = String(d.getUTCDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        return String(dateValue);
-    }
-    
-    function formatDateForDisplay(dateStr) {
-        if (!dateStr) return '';
-        const parts = dateStr.split('-');
-        if (parts.length === 3) {
-            return `${parts[2]}.${parts[1]}.${parts[0]}`;
-        }
-        return dateStr;
-    }
+    // Тарифы
+    function loadRates() { const s = localStorage.getItem('workRates'); if(s){ const p=JSON.parse(s); rates.rate11=p.rate11??372.7; rates.rateLess=p.rateLess??400; } updateRatesDisplay(); }
+    function saveRates() { localStorage.setItem('workRates',JSON.stringify(rates)); updateRatesDisplay(); }
+    function updateRatesDisplay() { document.getElementById('currentRatesDisplay').innerHTML = `📌 Текущие тарифы: 11ч = ${rates.rate11} ₽/ч | &lt;11ч = ${rates.rateLess} ₽/ч`; }
+    function calcPayment(h) { return h===11 ? h*rates.rate11 : h*rates.rateLess; }
 
+    // Данные
+    function saveData() { localStorage.setItem('workRecords',JSON.stringify(records)); }
+    function loadData() { const s = localStorage.getItem('workRecords'); records = s ? JSON.parse(s).map(r=>({...r,date:normalizeDate(r.date)})) : []; saveData(); }
+    const uniqueEmployees = () => [...new Set(records.map(r=>r.employee))].sort();
+    const uniqueYears = () => [...new Set(records.map(r=>r.date.split('-')[0]))].filter(y=>y).sort((a,b)=>b-a);
+    const isDuplicate = (date,emp,exclude) => records.some(r=>r.date===date && r.employee===emp && r.id!==exclude);
     const generateId = () => Date.now();
-    const saveData = () => localStorage.setItem('workRecords', JSON.stringify(records));
-    const loadData = () => { 
-        const saved = localStorage.getItem('workRecords'); 
-        records = saved ? JSON.parse(saved) : []; 
-        saveData(); 
-    };
-    const uniqueEmployees = () => [...new Set(records.map(r => r.employee))].sort();
-    const uniqueYears = () => [...new Set(records.map(r => r.date.split('-')[0]))].filter(y => y).sort((a,b)=>b-a);
-    const isDuplicate = (date, emp, excludeId) => records.some(r => r.date === date && r.employee === emp && r.id !== excludeId);
 
-    // ============================================================
-    // ФИЛЬТРАЦИЯ
-    // ============================================================
+    // Фильтры
     function filterForReport() {
         let f = [...records];
-        if (currentFilter.startDate) f = f.filter(r => r.date >= currentFilter.startDate);
-        if (currentFilter.endDate) f = f.filter(r => r.date <= currentFilter.endDate);
-        if (currentFilter.employee) f = f.filter(r => r.employee === currentFilter.employee);
+        if(currentFilter.startDate) f = f.filter(r=>r.date>=currentFilter.startDate);
+        if(currentFilter.endDate) f = f.filter(r=>r.date<=currentFilter.endDate);
+        if(currentFilter.employee) f = f.filter(r=>r.employee===currentFilter.employee);
         return f;
     }
+    
     function filterForList() {
         let f = [...records];
-        if (listFilter.year) f = f.filter(r => r.date.startsWith(listFilter.year));
-        if (listFilter.month) { const m = listFilter.month.padStart(2,'0'); f = f.filter(r => r.date.split('-')[1] === m); }
-        if (listFilter.employee) f = f.filter(r => r.employee === listFilter.employee);
-        f.sort((a,b) => listFilter.sortOrder === 'desc' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date));
+        
+        // Фильтр по конкретной дате (приоритетный)
+        if (listFilter.exactDate) {
+            f = f.filter(r => r.date === listFilter.exactDate);
+        } else {
+            // Фильтр по году
+            if (listFilter.year) {
+                f = f.filter(r => r.date.startsWith(listFilter.year));
+            }
+            // Фильтр по месяцу
+            if (listFilter.month) {
+                const monthStr = listFilter.month.padStart(2, '0');
+                f = f.filter(r => r.date.split('-')[1] === monthStr);
+            }
+        }
+        
+        // Фильтр по сотруднику
+        if (listFilter.employee) {
+            f = f.filter(r => r.employee === listFilter.employee);
+        }
+        
+        // Сортировка
+        f.sort((a, b) => {
+            if (listFilter.sortOrder === 'desc') {
+                return b.date.localeCompare(a.date);
+            } else {
+                return a.date.localeCompare(b.date);
+            }
+        });
+        
         return f;
     }
 
-    // ============================================================
-    // ОТОБРАЖЕНИЕ
-    // ============================================================
+    // Рендер
     function renderReport() {
         const f = filterForReport();
-        let h=0, p=0;
-        f.forEach(r => { h += r.hours; p += r.payment; });
+        let h=0,p=0; f.forEach(r=>{ h+=r.hours; p+=r.payment; });
         document.getElementById('totalHours').innerText = h;
-        document.getElementById('totalPayment').innerText = p.toLocaleString('ru-RU', {minimumFractionDigits:2}) + ' ₽';
+        document.getElementById('totalPayment').innerText = p.toLocaleString('ru-RU',{minimumFractionDigits:2})+' ₽';
         document.getElementById('recordsCount').innerText = f.length;
     }
     function renderTable() {
         const f = filterForList();
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
-        f.forEach(rec => {
+        f.forEach(rec=>{
             const row = tbody.insertRow();
-            row.insertCell(0).innerText = formatDateForDisplay(rec.date);
+            row.insertCell(0).innerText = formatDate(rec.date);
             row.insertCell(1).innerText = rec.employee;
             row.insertCell(2).innerText = rec.hours;
-            row.insertCell(3).innerText = rec.payment.toLocaleString('ru-RU',{minimumFractionDigits:2}) + ' ₽';
+            row.insertCell(3).innerText = rec.payment.toLocaleString('ru-RU',{minimumFractionDigits:2})+' ₽';
             const act = row.insertCell(4);
             act.className = 'action-buttons';
-            const eBtn = document.createElement('button'); eBtn.innerText = '✏️'; eBtn.className = 'btn-edit'; eBtn.onclick = () => openEdit(rec.id);
-            const dBtn = document.createElement('button'); dBtn.innerText = '🗑️'; dBtn.className = 'btn-delete'; dBtn.onclick = () => deleteRec(rec.id);
-            act.append(eBtn, dBtn);
+            const eBtn = document.createElement('button'); eBtn.innerText='✏️'; eBtn.className='btn-edit'; eBtn.onclick=()=>openEdit(rec.id);
+            const dBtn = document.createElement('button'); dBtn.innerText='🗑️'; dBtn.className='btn-delete'; dBtn.onclick=()=>deleteRec(rec.id);
+            act.append(eBtn,dBtn);
         });
     }
     function updateAll() { renderReport(); renderTable(); }
 
-    // ============================================================
-    // ВЫПАДАЮЩИЕ СПИСКИ
-    // ============================================================
+    // UI
     function updateFilters() {
         const ySel = document.getElementById('yearListFilter');
         const oldY = ySel.value;
         ySel.innerHTML = '<option value="">Все годы</option>';
-        uniqueYears().forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; ySel.appendChild(o); });
-        if (oldY && uniqueYears().includes(oldY)) ySel.value = oldY;
-
+        uniqueYears().forEach(y=>{const o=document.createElement('option'); o.value=y; o.textContent=y; ySel.appendChild(o);});
+        if(oldY && uniqueYears().includes(oldY)) ySel.value=oldY;
         const empList = uniqueEmployees();
-        ['employeeFilter', 'employeeListFilter'].forEach(id => {
+        ['employeeFilter','employeeListFilter'].forEach(id=>{
             const sel = document.getElementById(id);
             const old = sel.value;
             sel.innerHTML = '<option value="">Все сотрудники</option>';
-            empList.forEach(e => { const o = document.createElement('option'); o.value = e; o.textContent = e; sel.appendChild(o); });
-            if (old && empList.includes(old)) sel.value = old;
+            empList.forEach(e=>{const o=document.createElement('option'); o.value=e; o.textContent=e; sel.appendChild(o);});
+            if(old && empList.includes(old)) sel.value=old;
         });
     }
 
-    // ============================================================
-    // АВТОЗАПОЛНЕНИЕ
-    // ============================================================
-    function setupAutocomplete(inpId, listId, warnId, dateId) {
+    function setupAutocomplete(inpId,listId,warnId,dateId){
         const inp = document.getElementById(inpId), list = document.getElementById(listId);
-        inp.addEventListener('input', () => {
+        inp.addEventListener('input',()=>{
             const val = inp.value.toLowerCase();
-            const filtered = uniqueEmployees().filter(e => e.toLowerCase().includes(val));
-            list.innerHTML = filtered.map(n => `<div>${n}</div>`).join('');
+            const filtered = uniqueEmployees().filter(e=>e.toLowerCase().includes(val));
+            list.innerHTML = filtered.map(n=>`<div>${n}</div>`).join('');
             list.style.display = filtered.length && val ? 'block' : 'none';
-            list.querySelectorAll('div').forEach(div => div.addEventListener('click', () => {
+            Array.from(list.children).forEach(div=>div.addEventListener('click',()=>{
                 inp.value = div.innerText;
                 list.style.display = 'none';
-                if (warnId && dateId) {
+                if(warnId && dateId){
                     const d = document.getElementById(dateId).value;
                     const w = document.getElementById(warnId);
-                    if (d && div.innerText && isDuplicate(d, div.innerText, null)) w.style.display = 'block';
-                    else if (w) w.style.display = 'none';
+                    if(d && div.innerText && isDuplicate(d,div.innerText,null)) w.style.display='block';
+                    else if(w) w.style.display='none';
                 }
             }));
         });
-        inp.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
-        if (dateId && warnId) {
-            document.getElementById(dateId).addEventListener('change', () => {
+        inp.addEventListener('blur',()=>setTimeout(()=>list.style.display='none',200));
+        if(dateId && warnId){
+            document.getElementById(dateId).addEventListener('change',()=>{
                 const d = document.getElementById(dateId).value;
                 const e = inp.value;
                 const w = document.getElementById(warnId);
-                if (d && e && isDuplicate(d, e, null)) w.style.display = 'block';
-                else if (w) w.style.display = 'none';
+                if(d && e && isDuplicate(d,e,null)) w.style.display='block';
+                else if(w) w.style.display='none';
             });
         }
     }
 
-    // ============================================================
-    // CRUD (с использованием calculatePaymentForNewRecord)
-    // ============================================================
-    function addRecord(date, emp, h) {
-        if (!date || !emp || !h) { alert('Заполните все поля'); return false; }
-        const normalizedDate = normalizeDate(date);
-        if (isDuplicate(normalizedDate, emp, null)) { alert('❌ Сотрудник уже добавлен на эту дату'); return false; }
-        h = parseFloat(h);
-        if (isNaN(h) || h <= 0) { alert('Введите корректное количество часов'); return false; }
-        const newRec = { id: generateId(), date: normalizedDate, employee: emp.trim(), hours: h, payment: calculatePaymentForNewRecord(h) };
-        records.push(newRec);
-        saveData();
-        updateFilters();
-        updateAll();
+    // CRUD
+    function addRecord(date,emp,h){
+        if(!date||!emp||!h){ alert('Заполните поля'); return false; }
+        const nd = normalizeDate(date);
+        if(isDuplicate(nd,emp,null)){ alert('❌ Сотрудник уже добавлен на эту дату'); return false; }
+        h=parseFloat(h);
+        if(isNaN(h)||h<=0){ alert('Некорректные часы'); return false; }
+        records.push({id:generateId(), date:nd, employee:emp.trim(), hours:h, payment:calcPayment(h)});
+        saveData(); updateFilters(); updateAll();
         return true;
     }
-    function deleteRec(id) {
-        if (confirm('Удалить эту запись?')) {
-            records = records.filter(r => r.id !== id);
-            saveData();
-            updateFilters();
-            updateAll();
-        }
+    function deleteRec(id){
+        if(confirm('Удалить?')){ records=records.filter(r=>r.id!==id); saveData(); updateFilters(); updateAll(); }
     }
-    function openEdit(id) {
-        editingId = id;
-        const r = records.find(r => r.id === id);
-        document.getElementById('editDate').value = r.date;
-        document.getElementById('editEmployee').value = r.employee;
-        document.getElementById('editHours').value = r.hours;
-        document.getElementById('editModal').style.display = 'flex';
+    function openEdit(id){
+        editingId=id;
+        const r=records.find(r=>r.id===id);
+        document.getElementById('editDate').value=r.date;
+        document.getElementById('editEmployee').value=r.employee;
+        document.getElementById('editHours').value=r.hours;
+        document.getElementById('editModal').style.display='flex';
         setupAutocomplete('editEmployee','editAutocompleteList','editDuplicateWarning','editDate');
     }
-    function closeEdit() { editingId = null; document.getElementById('editModal').style.display = 'none'; }
-    function saveEdit() {
-        const date = document.getElementById('editDate').value, employee = document.getElementById('editEmployee').value, hours = parseFloat(document.getElementById('editHours').value);
-        if (!date || !employee || isNaN(hours) || hours <= 0) { alert('Заполните все поля'); return; }
-        const normalizedDate = normalizeDate(date);
-        if (isDuplicate(normalizedDate, employee, editingId)) { alert('❌ Сотрудник уже добавлен на эту дату'); return; }
-        const idx = records.findIndex(r => r.id === editingId);
-        if (idx !== -1) {
-            // При редактировании пересчитываем сумму по текущим тарифам
-            records[idx] = { ...records[idx], date: normalizedDate, employee: employee.trim(), hours, payment: calculatePaymentForEdit(hours) };
-            saveData();
-            updateFilters();
-            updateAll();
+    function closeEdit(){ editingId=null; document.getElementById('editModal').style.display='none'; }
+    function saveEdit(){
+        const date=document.getElementById('editDate').value, employee=document.getElementById('editEmployee').value, hours=parseFloat(document.getElementById('editHours').value);
+        if(!date||!employee||isNaN(hours)||hours<=0){ alert('Заполните поля'); return; }
+        const nd=normalizeDate(date);
+        if(isDuplicate(nd,employee,editingId)){ alert('❌ Дубликат'); return; }
+        const idx=records.findIndex(r=>r.id===editingId);
+        if(idx!==-1){
+            records[idx]={...records[idx], date:nd, employee:employee.trim(), hours, payment:calcPayment(hours)};
+            saveData(); updateFilters(); updateAll();
         }
         closeEdit();
     }
 
-    // ============================================================
-    // ЭКСПОРТ / ИМПОРТ
-    // ============================================================
-    function exportToFile() {
-        if (records.length === 0) {
-            alert('Нет данных для экспорта');
-            return;
-        }
-        const dataStr = JSON.stringify(records, null, 2);
-        const blob = new Blob([dataStr], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `backup_${new Date().toISOString().slice(0,19)}.json`;
+    // Экспорт/импорт
+    function exportData(){
+        if(!records.length){ alert('Нет данных'); return; }
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([JSON.stringify(records,null,2)],{type:'application/json'}));
+        a.download=`backup_${new Date().toISOString().slice(0,19)}.json`;
         a.click();
-        URL.revokeObjectURL(url);
-        alert('✅ Данные экспортированы');
+        URL.revokeObjectURL(a.href);
+        alert('✅ Экспортировано');
     }
-    
-    function importFromFile() {
-        document.getElementById('importFile').click();
-    }
-    
-    function handleImportFile(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported)) {
-                    records = imported;
-                    saveData();
-                    updateFilters();
-                    updateAll();
-                    alert(`✅ Импортировано ${records.length} записей`);
-                } else {
-                    alert('❌ Неверный формат файла');
-                }
-            } catch (err) {
-                alert('❌ Ошибка при импорте: ' + err.message);
-            }
+    function importData(){ document.getElementById('importFile').click(); }
+    function handleImport(e){
+        const file=e.target.files[0];
+        if(!file) return;
+        const reader=new FileReader();
+        reader.onload=ev=>{
+            try{
+                const imp=JSON.parse(ev.target.result);
+                if(Array.isArray(imp)){ records=imp.map(r=>({...r,date:normalizeDate(r.date),payment:calcPayment(r.hours)})); saveData(); updateFilters(); updateAll(); alert(`✅ Импортировано ${records.length} записей`); }
+                else alert('❌ Неверный формат');
+            }catch(err){ alert('❌ Ошибка импорта'); }
         };
         reader.readAsText(file);
-        event.target.value = '';
+        e.target.value='';
     }
 
-    // ============================================================
-    // УПРАВЛЕНИЕ ФИЛЬТРАМИ
-    // ============================================================
-    function applyReportFilters() {
-        currentFilter.startDate = document.getElementById('startDate').value;
-        currentFilter.endDate = document.getElementById('endDate').value;
-        currentFilter.employee = document.getElementById('employeeFilter').value;
+    // Настройки
+    function openSettings(){ document.getElementById('rate11').value=rates.rate11; document.getElementById('rateLess').value=rates.rateLess; document.getElementById('settingsModal').style.display='flex'; }
+    function closeSettings(){ document.getElementById('settingsModal').style.display='none'; }
+    function saveSettings(){
+        const r11=parseFloat(document.getElementById('rate11').value), rLess=parseFloat(document.getElementById('rateLess').value);
+        if(isNaN(r11)||r11<=0||isNaN(rLess)||rLess<=0){ alert('Некорректные ставки'); return; }
+        rates.rate11=r11; rates.rateLess=rLess;
+        saveRates();
+        closeSettings();
+        alert('✅ Тарифы сохранены (только для новых записей)');
+    }
+
+    // Фильтры интерфейса
+    function applyReportFilters(){
+        currentFilter.startDate=document.getElementById('startDate').value;
+        currentFilter.endDate=document.getElementById('endDate').value;
+        currentFilter.employee=document.getElementById('employeeFilter').value;
         renderReport();
     }
-    function applyListFilters() {
-        listFilter.year = document.getElementById('yearListFilter').value;
-        listFilter.month = document.getElementById('monthListFilter').value;
-        listFilter.employee = document.getElementById('employeeListFilter').value;
-        listFilter.sortOrder = document.getElementById('sortOrder').value;
+    function applyListFilters(){
+        listFilter.year=document.getElementById('yearListFilter').value;
+        listFilter.month=document.getElementById('monthListFilter').value;
+        listFilter.exactDate=document.getElementById('exactDateFilter').value;
+        listFilter.employee=document.getElementById('employeeListFilter').value;
+        listFilter.sortOrder=document.getElementById('sortOrder').value;
         renderTable();
     }
-    function toggleSort() {
-        listFilter.sortOrder = listFilter.sortOrder === 'desc' ? 'asc' : 'desc';
-        document.getElementById('sortOrder').value = listFilter.sortOrder;
+    function toggleSort(){
+        listFilter.sortOrder=listFilter.sortOrder==='desc'?'asc':'desc';
+        document.getElementById('sortOrder').value=listFilter.sortOrder;
         renderTable();
     }
-    function toggleExpand() {
-        const c = document.getElementById('recordsContent'), i = document.getElementById('expandIcon');
-        if (isExpanded) { c.style.display = 'none'; i.innerText = '▼'; } else { c.style.display = 'block'; i.innerText = '▲'; }
-        isExpanded = !isExpanded;
+    function toggleExpand(){
+        const c=document.getElementById('recordsContent'), i=document.getElementById('expandIcon');
+        if(isExpanded){ c.style.display='none'; i.innerText='▼'; } else { c.style.display='block'; i.innerText='▲'; }
+        isExpanded=!isExpanded;
     }
 
-    // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ
-    // ============================================================
-    function init() {
+    // Инициализация
+    function init(){
         loadRates();
         loadData();
         updateFilters();
@@ -640,32 +415,42 @@
         setupAutocomplete('newEmployee','autocompleteList','duplicateWarning','newDate');
         setupAutocomplete('editEmployee','editAutocompleteList','editDuplicateWarning','editDate');
         
-        document.getElementById('calculateBtn').addEventListener('click', applyReportFilters);
-        document.getElementById('exportBtn').addEventListener('click', exportToFile);
-        document.getElementById('importBtn').addEventListener('click', importFromFile);
-        document.getElementById('importFile').addEventListener('change', handleImportFile);
-        document.getElementById('applyListFilterBtn').addEventListener('click', applyListFilters);
-        document.getElementById('sortOrder').addEventListener('change', applyListFilters);
-        document.querySelector('.sort-header')?.addEventListener('click', toggleSort);
-        document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
-        document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
-        document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettingsModal);
+        // Обработчики для синхронизации фильтров
+        document.getElementById('yearListFilter').addEventListener('change', () => {
+            document.getElementById('exactDateFilter').value = '';
+        });
+        document.getElementById('monthListFilter').addEventListener('change', () => {
+            document.getElementById('exactDateFilter').value = '';
+        });
+        document.getElementById('exactDateFilter').addEventListener('change', () => {
+            document.getElementById('yearListFilter').value = '';
+            document.getElementById('monthListFilter').value = '';
+        });
         
-        document.getElementById('addBtn').addEventListener('click', () => {
-            const d = document.getElementById('newDate').value, e = document.getElementById('newEmployee').value, h = document.getElementById('newHours').value;
-            if (addRecord(d, e, h)) {
-                document.getElementById('newDate').value = '';
-                document.getElementById('newEmployee').value = '';
-                document.getElementById('newHours').value = '';
-                document.getElementById('duplicateWarning').style.display = 'none';
+        document.getElementById('calculateBtn').addEventListener('click',applyReportFilters);
+        document.getElementById('applyListFilterBtn').addEventListener('click',applyListFilters);
+        document.getElementById('sortOrder').addEventListener('change',applyListFilters);
+        document.querySelector('.sort-header')?.addEventListener('click',toggleSort);
+        document.getElementById('settingsBtn').addEventListener('click',openSettings);
+        document.getElementById('saveSettingsBtn').addEventListener('click',saveSettings);
+        document.getElementById('cancelSettingsBtn').addEventListener('click',closeSettings);
+        document.getElementById('exportBtn').addEventListener('click',exportData);
+        document.getElementById('importBtn').addEventListener('click',importData);
+        document.getElementById('importFile').addEventListener('change',handleImport);
+        document.getElementById('addBtn').addEventListener('click',()=>{
+            const d=document.getElementById('newDate').value, e=document.getElementById('newEmployee').value, h=document.getElementById('newHours').value;
+            if(addRecord(d,e,h)){
+                document.getElementById('newDate').value='';
+                document.getElementById('newEmployee').value='';
+                document.getElementById('newHours').value='';
+                document.getElementById('duplicateWarning').style.display='none';
                 updateAll();
             }
         });
-        document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
-        document.getElementById('cancelEditBtn').addEventListener('click', closeEdit);
-        document.getElementById('expandHeader').addEventListener('click', toggleExpand);
-        document.getElementById('editModal').addEventListener('click', (e) => { if (e.target === document.getElementById('editModal')) closeEdit(); });
-        
+        document.getElementById('saveEditBtn').addEventListener('click',saveEdit);
+        document.getElementById('cancelEditBtn').addEventListener('click',closeEdit);
+        document.getElementById('expandHeader').addEventListener('click',toggleExpand);
+        document.getElementById('editModal').addEventListener('click',(e)=>{ if(e.target===document.getElementById('editModal')) closeEdit(); });
         applyReportFilters();
         applyListFilters();
     }
